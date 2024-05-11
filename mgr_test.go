@@ -20,7 +20,7 @@ func Test_Ior(t *testing.T) {
 	data := TestPyTemplateData{"Hiho", "fancyfile.tmp"}
 	defer func() { os.Remove(data.Filename) }()
 
-	ior := New(TestPyTemplate, pathToVenvIor, DEFAULT_BIN_PATH_WINDOWS, data)
+	ior := New(TestPyTemplate, PyBinPathForVenv(pathToVenvIor, true), data)
 	t.Log(ior.Run())
 
 }

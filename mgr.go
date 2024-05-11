@@ -14,41 +14,23 @@ const (
 	DEFAULT_BIN_PATH_WINDOWS = `Scripts\python.exe`
 )
 
-func NewIorVenv(tpl string) *Mgr {
-	r := Mgr{
-		Template: tpl,
-		VenvPath: `d:\p\W\V16\ior\master\ior_venv`,
-		BinPath:  `Scripts\python.exe`,
-	}
-	return &r
+func PyBinPathForVenv(venv string, forWindows bool) string {
+	m := map[bool]string{true: DEFAULT_BIN_PATH_WINDOWS, false: DEFAULT_BIN_PATH_LINUX}
+	return path.Join(venv, m[forWindows])
 }
 
-func New(tmplte string, venv string, binpath string, data any) *Mgr {
+func New(tmplte string, pyBinPath string, data any) *Mgr {
 	return &Mgr{
-		Template: tmplte,
-		VenvPath: venv,
-		BinPath:  binpath, //relative to venv
-		Data:     data,
+		Template:  tmplte,
+		PyBinPath: pyBinPath,
+		Data:      data,
 	}
-}
-
-func NewWindows(tpl string, venv string, data any) *Mgr {
-	return New(tpl, venv, DEFAULT_BIN_PATH_WINDOWS, data)
-}
-
-func NewLinux(tpl string, venv string, data any) *Mgr {
-	return New(tpl, venv, DEFAULT_BIN_PATH_WINDOWS, data)
 }
 
 type Mgr struct {
-	Template string
-	VenvPath string
-	BinPath  string
-	Data     any
-}
-
-func (sc Mgr) binPath() string {
-	return path.Join(sc.VenvPath, sc.BinPath)
+	Template  string
+	PyBinPath string
+	Data      any
 }
 
 func (sc Mgr) parsedTpl() (r bytes.Buffer, err error) {
@@ -76,11 +58,11 @@ func (sc Mgr) stdizeLines() string {
 	return strings.Join(r, "\n")
 }
 
-func (sc *Mgr) Run() (duration time.Duration, stdout bytes.Buffer, err error) {
+func (sc *Mgr) Run() (stdout, stderr bytes.Buffer, duration time.Duration, err error) {
 	start := time.Now()
-	c := exec.Command(sc.binPath(), "-c", sc.stdizeLines())
+	c := exec.Command(sc.PyBinPath, "-c", sc.stdizeLines())
 	c.Stdout = &stdout
-	c.Stderr = &stdout
+	c.Stderr = &stderr
 	err = c.Run()
-	return time.Since(start), stdout, err
+	return stdout, stderr, time.Since(start), err
 }
