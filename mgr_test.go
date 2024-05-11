@@ -21,6 +21,8 @@ func Test_Ior(t *testing.T) {
 	defer func() { os.Remove(data.Filename) }()
 
 	ior := New(TestPyTemplate, PyBinPathForVenv(pathToVenvIor, true), data)
-	t.Log(ior.Run())
+	sOut, _, _, err := ior.Run()
+	t.Log(sOut.String())
+	t.Log(err)
 
 }
