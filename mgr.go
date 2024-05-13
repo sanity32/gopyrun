@@ -31,6 +31,7 @@ type Mgr struct {
 	Template  string
 	PyBinPath string
 	Data      any
+	Dir       string
 }
 
 func (sc Mgr) parsedTpl() (r bytes.Buffer, err error) {
@@ -61,6 +62,9 @@ func (sc Mgr) stdizeLines() string {
 func (sc *Mgr) Run() (stdout, stderr bytes.Buffer, duration time.Duration, err error) {
 	start := time.Now()
 	c := exec.Command(sc.PyBinPath, "-c", sc.stdizeLines())
+	if d := sc.Dir; d != "" {
+		c.Dir = d
+	}
 	c.Stdout = &stdout
 	c.Stderr = &stderr
 	err = c.Run()
