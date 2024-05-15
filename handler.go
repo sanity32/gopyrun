@@ -2,6 +2,7 @@ package gopyrun
 
 import (
 	"bytes"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -21,6 +22,12 @@ type Handler struct {
 	Stderr bytes.Buffer
 	cmd    *exec.Cmd
 	start  time.Time
+}
+
+func (h Handler) DumpStd() {
+	os.WriteFile("gopy.std.out.txt", h.Stdout.Bytes(), 0644)
+	os.WriteFile("gopy.std.err.txt", h.Stderr.Bytes(), 0644)
+
 }
 
 func (h Handler) Passed() time.Duration {
