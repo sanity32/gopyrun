@@ -6,7 +6,6 @@ import (
 	"path"
 	"strings"
 	"text/template"
-	"time"
 )
 
 const (
@@ -19,22 +18,22 @@ func PyBinPathForVenv(venv string, forWindows bool) string {
 	return path.Join(venv, m[forWindows])
 }
 
-func New(tmplte string, pyBinPath string, data any) *Mgr {
-	return &Mgr{
+func New(tmplte string, pyBinPath string, data any) *Launcher {
+	return &Launcher{
 		Template:  tmplte,
 		PyBinPath: pyBinPath,
 		Data:      data,
 	}
 }
 
-type Mgr struct {
+type Launcher struct {
 	Template  string
 	PyBinPath string
 	Data      any
 	Dir       string
 }
 
-func (sc Mgr) parsedTpl() (r bytes.Buffer, err error) {
+func (sc Launcher) parsedTpl() (r bytes.Buffer, err error) {
 	if t, err := template.New("scr").Parse(sc.Template); err != nil {
 		return r, err
 	} else {
@@ -42,7 +41,7 @@ func (sc Mgr) parsedTpl() (r bytes.Buffer, err error) {
 	}
 }
 
-func (sc Mgr) stdizeLines() string {
+func (sc Launcher) stdizeLines() string {
 	s, err := sc.parsedTpl()
 	if err != nil {
 		return ""
@@ -59,14 +58,10 @@ func (sc Mgr) stdizeLines() string {
 	return strings.Join(r, "\n")
 }
 
-func (sc *Mgr) Run() (stdout, stderr bytes.Buffer, duration time.Duration, err error) {
-	start := time.Now()
+func (sc *Launcher) Handler() *Handler {
 	c := exec.Command(sc.PyBinPath, "-c", sc.stdizeLines())
 	if d := sc.Dir; d != "" {
 		c.Dir = d
 	}
-	c.Stdout = &stdout
-	c.Stderr = &stderr
-	err = c.Run()
-	return stdout, stderr, time.Since(start), err
+	return NewHandler(c)
 }
