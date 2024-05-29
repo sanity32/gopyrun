@@ -2,6 +2,7 @@ package gopyrun
 
 import (
 	"bytes"
+	"os"
 	"os/exec"
 	"path"
 	"strings"
@@ -60,6 +61,18 @@ func (sc Launcher) stdizeLines() string {
 
 func (sc *Launcher) Handler() *Handler {
 	c := exec.Command(sc.PyBinPath, "-c", sc.stdizeLines())
+	if d := sc.Dir; d != "" {
+		c.Dir = d
+	}
+	return NewHandler(c)
+}
+
+func (sc Launcher) SaveFile(filename string) error {
+	return os.WriteFile(filename, []byte(sc.Template), 0755)
+}
+
+func (sc *Launcher) HandlerFile(filename string) *Handler {
+	c := exec.Command(sc.PyBinPath, filename)
 	if d := sc.Dir; d != "" {
 		c.Dir = d
 	}
